@@ -1,0 +1,6 @@
+{
+  "ticket_id": "TICK-2025-004",
+  "customer_name": "Apex Manufacturing",
+  "product": "OmniBot 5000",
+  "issue_description": "Robot #7 (Unit ID: OB-774-A) failed to complete its charging cycle last night. We found it this morning completely dead a few feet from its docking station. The station's light is blinking amber. We've tried power cycling the station, but the robot won't charge. We need this unit back online ASAP."
+}

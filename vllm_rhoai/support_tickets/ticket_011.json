@@ -1,0 +1,6 @@
+{
+  "ticket_id": "TICK-2025-014",
+  "customer_name": "Future-Proof Fab",
+  "product": "OmniBot 5000",
+  "issue_description": "The payload sensor on Unit #15 is not working correctly. It's failing to detect when a bin has been placed on it, so it never proceeds with the delivery task. We've cleaned the sensor surface and checked for obstructions. Is there a way to reset or test the sensor directly?"
+}

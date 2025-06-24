@@ -1,0 +1,6 @@
+{
+  "ticket_id": "TICK-2025-006",
+  "customer_name": "Future-Proof Fab",
+  "product": "OmniBot Fleet Manager",
+  "issue_description": "I'm trying to define a new 'no-go' zone in the Fleet Management software around a temporary maintenance area, but the zone won't save. Every time I draw the polygon and click 'Confirm', I get a generic 'Update Failed' error with no details. The existing zones work, but I can't add or modify any."
+}
