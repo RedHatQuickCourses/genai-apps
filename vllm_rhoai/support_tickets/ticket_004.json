@@ -1,0 +1,6 @@
+{
+  "ticket_id": "TICK-2025-007",
+  "customer_name": "Dynamic Devices Inc.",
+  "product": "OmniBot 5000",
+  "issue_description": "One of our robots, Unit #12, is constantly getting stuck in Sector G. We recently re-taped the floor markings, and it seems the robot's navigation sensor isn't reading the new lines correctly. Is there a sensor calibration procedure we need to run? I can't find it in the standard user manual."
+}

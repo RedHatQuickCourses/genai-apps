@@ -1,0 +1,6 @@
+{
+  "ticket_id": "TICK-2025-011",
+  "customer_name": "Starlight Logistics",
+  "product": "OmniBot API",
+  "issue_description": "Our custom integration using your API to pull robot analytics has stopped working. We're getting a '401 Unauthorized' error on all endpoints since yesterday. Our API key hasn't changed. Was there a change on your end? We rely on this data for our hourly performance reports."
+}

@@ -1,0 +1,6 @@
+{
+  "ticket_id": "TICK-2025-017",
+  "customer_name": "Dynamic Devices Inc.",
+  "product": "OmniBot Fleet Manager",
+  "issue_description": "We're experiencing task scheduling conflicts in the Fleet Manager. We have two high-priority tasks scheduled for the same time, but the system assigned both to the same robot instead of distributing the work. The 'load balancing' feature doesn't seem to be working as expected."
+}

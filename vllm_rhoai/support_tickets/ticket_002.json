@@ -1,0 +1,6 @@
+{
+  "ticket_id": "TICK-2025-005",
+  "customer_name": "Starlight Logistics",
+  "product": "OmniBot 5000",
+  "issue_description": "We pushed the latest firmware update (v2.1.5) to our fleet last night. This morning, three of our ten robots are refusing to move, displaying error code 'E-404-NAV-FAIL' on their screens. The ones that weren't updated are working fine. How can we roll back the firmware on the affected units?"
+}

@@ -1,0 +1,6 @@
+{
+  "ticket_id": "TICK-2025-018",
+  "customer_name": "Global Circuitry",
+  "product": "OmniBot 5000",
+  "issue_description": "The firmware update process for Unit #11 is stuck at 87% and has been for over an hour. The robot's screen is frozen on the update progress bar. We're afraid to power it off in this state. What is the safe procedure for handling a frozen update?"
+}

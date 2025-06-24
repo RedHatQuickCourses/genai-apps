@@ -1,0 +1,6 @@
+{
+  "ticket_id": "TICK-2025-012",
+  "customer_name": "Dynamic Devices Inc.",
+  "product": "OmniBot 5000",
+  "issue_description": "Collision! Two of our robots (Unit #4 and #9) collided at an intersection. The anti-collision system should have prevented this. Both units are now halted with proximity sensor errors and have minor physical damage. We need to understand why the safety feature failed."
+}
