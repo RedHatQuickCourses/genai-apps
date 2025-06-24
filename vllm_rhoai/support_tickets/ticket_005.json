@@ -1,0 +1,6 @@
+{
+  "ticket_id": "TICK-2025-008",
+  "customer_name": "Global Circuitry",
+  "product": "OmniBot 5000",
+  "issue_description": "The battery on Unit #3 seems to be draining much faster than the others. It used to last a full 8-hour shift, but now it's requesting a charge after only 5 hours. It's a relatively new unit, less than six months old. All robots are running the same tasks."
+}

@@ -1,0 +1,6 @@
+{
+  "ticket_id": "TICK-2025-009",
+  "customer_name": "Apex Manufacturing",
+  "product": "OmniBot Fleet Manager",
+  "issue_description": "We've added a new robot (Unit ID: OB-812-C) to our facility, but it's not showing up in the Fleet Manager dashboard. The robot's local display says it's connected to the network, and I can ping its IP address from my computer. The management software just doesn't see it."
+}

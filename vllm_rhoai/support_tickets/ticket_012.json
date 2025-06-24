@@ -1,0 +1,6 @@
+{
+  "ticket_id": "TICK-2025-015",
+  "customer_name": "Apex Manufacturing",
+  "product": "OmniBot 5000",
+  "issue_description": "The emergency stop button on Unit #2 is stuck in the depressed position. We engaged it for a safety drill, and now it won't release. The robot is, correctly, immobilized, but we can't get it operational again. We're hesitant to use force on the button."
+}

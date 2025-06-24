@@ -1,0 +1,6 @@
+{
+  "ticket_id": "TICK-2025-013",
+  "customer_name": "Global Circuitry",
+  "product": "OmniBot 5000",
+  "issue_description": "One of our robots is frequently losing its Wi-Fi connection in the warehouse's east wing. It will stop, attempt to reconnect for several minutes, and then resume its task. This is causing significant delays. Other robots in the same area seem to be less affected. Signal strength in that area is supposedly strong."
+}
