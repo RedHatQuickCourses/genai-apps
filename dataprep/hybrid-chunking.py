@@ -49,5 +49,5 @@ def customized_chunker():
         print()
     
 if __name__ == "__main__":
-    #default_chunker()
-    customized_chunker()
+    default_chunker()
+    #customized_chunker()
