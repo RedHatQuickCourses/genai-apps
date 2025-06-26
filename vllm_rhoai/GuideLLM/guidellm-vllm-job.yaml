@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: guidellm-benchmark-job
+  namespace: innovatech
+spec:
+  template:
+    spec:
+      containers:
+      - name: guidellm
+        image: ghcr.io/neuralmagic/guidellm:3864b31999f8e2972cf0474679c10c8092959153
+        command: ["guidellm"]
+        args:
+          - "benchmark"
+          - "--target"
+          - "https://qwen25-innovatech.apps.cluster-m9cgf.m9cgf.sandbox2631.opentlc.com"
+          - "--model"
+          - "meta-llama/Llama-3.1-8B-Instruct"
+          - "--processor"
+          - "meta-llama/Llama-3.1-8B-Instruct"
+          - "--data"
+          - '{"prompt_tokens":1000,"prompt_tokens_min":1,"prompt_tokens_max":4096,"output_tokens":1000,"output_tokens_min":1,"output_tokens_max":4096}'
+          - "--rate-type"
+          - "concurrent"
+          - "--max-seconds"
+          - "300"
+          - "--rate"
+          - "1,2,4,8,16,32,64,128,256"  #use a single rate for shorter runtimes
+          - "--output-path"
+          - "/results/output.json"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /results
+      volumes:
+      - name: results-volume
+        persistentVolumeClaim:
+          claimName: guidellm-results-pvc
+      restartPolicy: Never
+  backoffLimit: 1
