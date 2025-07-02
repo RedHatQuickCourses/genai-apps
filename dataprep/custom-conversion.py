@@ -56,10 +56,10 @@ def convert_pypdfium_backend():
         )
     
 # Need to do the following for this to work:
-    # brew install tesseract leptonica pkg-config
-    # TESSDATA_PREFIX=/opt/homebrew/share/tessdata/
-    # export "TESSDATA_PREFIX=${TESSDATA_PREFIX}"
-    # pip install --no-binary :all: tesserocr==2.8.0
+# brew install tesseract leptonica pkg-config
+# TESSDATA_PREFIX=/opt/homebrew/share/tessdata/
+# export "TESSDATA_PREFIX=${TESSDATA_PREFIX}"
+# pip install --no-binary :all: tesserocr==2.8.0
 def convert_tesseract_ocr():
     pipeline_options = PdfPipelineOptions()
     pipeline_options.do_ocr = True
@@ -85,6 +85,6 @@ def convert_tesseract_ocr():
 
 
 if __name__ == "__main__":
-    #convert_default()
+    convert_default()
     #convert_pypdfium_backend()
-    convert_tesseract_ocr()
+    #convert_tesseract_ocr()

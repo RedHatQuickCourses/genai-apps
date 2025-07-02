@@ -1,5 +1,7 @@
 import os
 import json
+import pprint
+
 
 # langchain imports
 from langchain_core.prompts import PromptTemplate
@@ -15,6 +17,7 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from docling.chunking import HybridChunker
 
 # Need to set this env var to prevent thread deadlocks
+# DO NOT CHANGE THIS!!
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 FILE_PATH = ["sample-data/docling-rpt.pdf"] 
@@ -48,7 +51,6 @@ def main():
     embedding = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
 
     # Store embeddings in Milvus Vector DB
-
     vectorstore = Milvus.from_documents(
         documents=docs,
         embedding=embedding,
@@ -57,7 +59,7 @@ def main():
         drop_old=True
     )
 
-
+    # instantiate the inference model
     llm = OllamaLLM(
         model=INFERENCE_MODEL
     )
@@ -68,6 +70,9 @@ def main():
     question_answer_chain = create_stuff_documents_chain(llm, PROMPT)
     rag_chain = create_retrieval_chain(retriever, question_answer_chain)
     resp_dict = rag_chain.invoke({"input": QUESTION})
+
+    # Uncomment this line to see the full output from the LLM
+    #pprint.pprint(resp_dict, indent=2, width=60)
 
     clipped_answer = clip_text(resp_dict["answer"], threshold=500)
     print("\n")
@@ -84,9 +89,6 @@ def main():
 
 def clip_text(text, threshold=100):
     return f"{text[:threshold]}..." if len(text) > threshold else text
-
-def format_docs(docs):
-    return "\n\n".join(doc.page_content for doc in docs)
 
 if __name__ == "__main__":
     main()

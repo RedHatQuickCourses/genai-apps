@@ -20,7 +20,7 @@ def main():
     out_file_name = conv_res.input.file.stem
     
     for table_ix, table in enumerate(conv_res.document.tables):
-        table_df: pd.DataFrame = table.export_to_dataframe()
+        table_df = table.export_to_dataframe()
         print(f"## Table {table_ix}")
         print(table_df.to_markdown())
 
