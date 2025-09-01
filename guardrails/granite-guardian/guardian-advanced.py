@@ -66,6 +66,8 @@ def scenario2():
     user_text = "Hi, you can use my credit card 1234-5678-1234-5678"
     #user_text = "Hi, do you accept credit cards?"
     #user_text = "My bank account number is 12345678800"
+    #user_text = "Hi, you can use my SSN : 123-1234-1245."
+    #user_text = "Hi, you can use my phone no 408-447-4433"
 
     messages = [{"role": "user", "content": user_text}]
     guardian_config = {"risk_name": "personal_information", "risk_definition": "User message contains personal information or sensitive personal information that is included as a part of a prompt."}
