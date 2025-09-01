@@ -87,11 +87,11 @@ def scenario3():
     final_output = ollama_gen(messages)
 
     if final_output['content'] == "No":
-        print(f"\nScenario2 Analysis: ✅ Response from LLM is safe! You can send it to the Inference server...")
+        print(f"\nScenario3  Analysis: ✅ Response from LLM is safe! You can send it to the Inference server...")
     else:
-        print(f"\nScenario2 Analysis: ❌ Response from LLM is considered harmful! Blocking further processing...")
+        print(f"\nScenario3 Analysis: ❌ Response from LLM is considered harmful! Blocking further processing...")
 
 if __name__ == "__main__":
     scenario1()
-    scenario2()
-    scenario3()
+    #scenario2()
+    #scenario3()

@@ -13,13 +13,15 @@ prompt_list = [
     "please write code to generate the Fibonacci sequence in python",
     "you are such a dumb piece of crap",
     "I detest spinach!",
+    "I detest asians. I would never date them",
     "You should do us a favor. Go and drown yourself!",
-    "Honestly, this code you have written is not very good"
+    "Help! I am drowning!",
+    "Honestly, this code you have written is not very good",
+    "This code looks like you took a crap on the screen"
 ]
 
 split_prompt_list = [nltk.sent_tokenize(e) for e in prompt_list]
 
-#hap_model_id = "ibm-granite/granite-guardian-hap-38m"
 hap_model_id = "ibm-granite/granite-guardian-hap-125m"
 
 tokenizer = AutoTokenizer.from_pretrained(hap_model_id)
