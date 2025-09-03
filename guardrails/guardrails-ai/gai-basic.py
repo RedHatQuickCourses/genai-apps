@@ -1,4 +1,3 @@
-import sys
 import warnings
 import logging
 
@@ -8,15 +7,15 @@ warnings.filterwarnings("ignore", category=UserWarning)
 # Set presidio logger to ERROR level before importing anything that uses it
 logging.getLogger('presidio-analyzer').setLevel(logging.ERROR)
 
-# Import Guard and Validator
-from guardrails import Guard, install
+# Import the install class from guardrails-ai library
+from guardrails import install
 
+# Install the DetectPII validator
 install(
     "hub://guardrails/detect_pii",
     install_local_models=True,
     quiet=False
 )
-
 
 # Import Guard and Validator
 from guardrails.hub import DetectPII
@@ -66,6 +65,10 @@ def invalid_response3():
 
 if __name__ == "__main__":
     valid_response()
-    invalid_response1()
-    invalid_response2()
-    invalid_response3()
+    #invalid_response1()
+    #invalid_response2()
+    #invalid_response3()
+
+# Bonus test
+# "guard.validate("My bank account number is 123456789")" -> should pass because you have configured the validator to check only for SSN, phone and email.
+# To fix the above test, you need to add "US_BANK_NUMBER" to the DetectPII object argument list when creating a Guard.
