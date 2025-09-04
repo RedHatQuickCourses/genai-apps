@@ -5,7 +5,7 @@ import logging
 # Ignore UserWarning type warnings that pollute the console
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# Import Guard and Validator
+# Import Guard and Validators
 from guardrails import Guard, install
 
 install(
@@ -40,7 +40,7 @@ guard = Guard().use_many(
 def test_valid_response():
 
     llm_response = """
-            This is a valid sentence.
+            The capital of France is Paris.
             """
 
     try:
@@ -96,7 +96,7 @@ def test_gibberish_sentence():
         
     except ValidationError as e:
         msg = str(e)
-        print(colored('\ntest_competitor_check(): Response from LLM is invalid\n', 'red'))
+        print(colored('\ntest_gibberish_sentence(): Response from LLM is invalid\n', 'red'))
         print(colored(f"{msg}", 'red', attrs=['bold']))
 
 if __name__ == "__main__":
