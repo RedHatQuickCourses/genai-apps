@@ -1,6 +1,9 @@
 from guardrails import Guard
 from guardrails.errors import ValidationError
 import warnings
+import os
+
+os.environ["GUARDRAILS_BASE_URL"] = "http://localhost:8000"
 
 # Ignore UserWarning type warnings that pollute the console
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -19,14 +22,14 @@ def test_gai_server():
     
     try:
         guard = Guard.fetch_guard(
-            name="content_guard", 
-            base_url="http://localhost:8000",
+            name="content_guard"
         )
         
         for i, text in enumerate(test_responses, 1):
             print(f"\nTest {i}: '{text}'")
             try:
                 result = guard.validate(text)
+                #print(result)
                 print(f"  ✅ PASSED: {result.validation_passed}")
                 if hasattr(result, 'validation_summaries'):
                     print(f"  Details: {result.validation_summaries}")

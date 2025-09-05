@@ -2,7 +2,6 @@ import guardrails as gd
 from guardrails import Guard
 import warnings
 import logging
-import sys
 
 # Ignore UserWarning type warnings that pollute the console
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -10,28 +9,26 @@ warnings.filterwarnings("ignore", category=UserWarning)
 # Set presidio logger to ERROR level before importing anything that uses it
 logging.getLogger('presidio-analyzer').setLevel(logging.ERROR)
 
-# Import validators from hub (install them first!)
-try:
-    from guardrails.hub import ToxicLanguage
-    TOXIC_AVAILABLE = True
-except ImportError:
-    print("ToxicLanguage not installed. Run: guardrails hub install hub://guardrails/toxic_language")
-    TOXIC_AVAILABLE = False
+from guardrails import Guard, install
 
-try:
-    from guardrails.hub import DetectPII  
-    PII_AVAILABLE = True
-except ImportError:
-    print("DetectPII not installed. Run: guardrails hub install hub://guardrails/detect_pii")
-    PII_AVAILABLE = False
+# Install required validators
+install(
+    "hub://guardrails/toxic_language",
+    install_local_models=True,
+    quiet=False
+)
 
+install(
+    "hub://guardrails/detect_pii",
+    install_local_models=True,
+    quiet=False
+)
 
-# Example 1: Simple Toxic Language Detection with Fix
+from guardrails.hub import ToxicLanguage
+from guardrails.hub import DetectPII  
+
+# Detect toxic content and fix it
 def toxic_content_example():
-    """Simple toxic content filtering with on_fail='fix'"""
-    if not TOXIC_AVAILABLE:
-        print("Skipping toxic content example - validator not installed")
-        return
         
     print("=== Toxic Content Filtering Example ===")
     
@@ -48,17 +45,12 @@ def toxic_content_example():
     try:
         # Guard will automatically clean toxic content
         result = guard.validate(toxic_text)
-        print(f"Cleaned text: {result.validated_output}")
-        print(f"Validation passed: {result.validation_passed}")
+        print(f"Cleaned safe text: {result.validated_output}")
     except Exception as e:
         print(f"Error: {e}")
 
-# Example 2: PII Detection and Redaction  
+# Detect PII in text and redact it
 def pii_redaction_example():
-    """Simple PII redaction with on_fail='fix'"""
-    if not PII_AVAILABLE:
-        print("Skipping PII example - validator not installed")
-        return
         
     print("\n=== PII Redaction Example ===")
     
@@ -76,17 +68,11 @@ def pii_redaction_example():
         # Guard will automatically redact PII
         result = guard.validate(text_with_pii)
         print(f"Redacted text: {result.validated_output}")
-        print(f"Validation passed: {result.validation_passed}")
     except Exception as e:
         print(f"Error: {e}")
 
-
-# Example 3: Combined Guards (if both available)
+# Validator stacking - combining both PII and Toxic content validators and fix
 def combined_example():
-    """Combined PII redaction and toxicity filtering"""
-    if not (TOXIC_AVAILABLE and PII_AVAILABLE):
-        print("Skipping combined example - need both validators installed")
-        return
         
     print("\n=== Combined PII + Toxicity Example ===")
     
@@ -105,13 +91,12 @@ def combined_example():
         # Guard will fix both issues
         result = guard.validate(problematic_text)
         print(f"Cleaned text: {result.validated_output}")
-        print(f"Validation passed: {result.validation_passed}")
     except Exception as e:
         print(f"Error: {e}")
 
 def main():
     toxic_content_example()
-    pii_redaction_example() 
+    pii_redaction_example()
     combined_example()
 
 # Safe execution
