@@ -1,0 +1,269 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: minio-dev
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: minio-secret
+  namespace: minio-dev
+type: Opaque
+stringData:
+  MINIO_ROOT_USER: minio
+  MINIO_ROOT_PASSWORD: minio123
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-pvc
+  namespace: minio-dev
+spec:
+  accessModes:
+    - ReadWriteOnce 
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  namespace: minio-dev
+  labels:
+    app: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+      - name: minio
+        image: quay.io/minio/minio:latest
+        command:
+        - /bin/bash
+        - -c
+        args:
+        - minio server /data --console-address :9090
+        envFrom:
+        - secretRef:
+            name: minio-secret
+        volumeMounts:
+        - name: minio-volume
+          mountPath: /data
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+        readinessProbe:
+          httpGet:
+            path: /minio/health/ready
+            port: 9000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /minio/health/live
+            port: 9000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+      volumes:
+      - name: minio-volume
+        persistentVolumeClaim:
+          claimName: minio-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-service
+  namespace: minio-dev
+  labels:
+    app: minio
+spec:
+  selector:
+    app: minio
+  ports:
+  - name: api
+    port: 9000
+    targetPort: 9000
+  - name: console
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: minio-console
+  namespace: minio-dev
+  labels:
+    app: minio
+spec:
+  to:
+    kind: Service
+    name: minio-service
+  port:
+    targetPort: console
+  tls:
+    termination: edge
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-bucket-creation
+  namespace: minio-dev
+  labels:
+    app: minio-bucket-creator
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: wait-for-minio
+        image: busybox:1.35
+        command: ['/bin/sh']
+        args:
+        - -c
+        - |
+          # Test MinIO HTTP response (403 is expected and good)
+          echo "Testing MinIO HTTP response..."
+          RETRY_COUNT=0
+          MAX_RETRIES=20
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            HTTP_RESPONSE=$(wget -qO- --timeout=10 http://minio-service:9000/ 2>&1 || echo "failed")
+            if echo "$HTTP_RESPONSE" | grep -q "403\|Forbidden\|Access Denied"; then
+              echo "✓ MinIO is responding (got 403 as expected)"
+              break
+            elif echo "$HTTP_RESPONSE" | grep -q "MinIO"; then
+              echo "✓ MinIO is responding"
+              break
+            else
+              echo "MinIO not fully ready, waiting... (attempt $((RETRY_COUNT+1))/$MAX_RETRIES)"
+              sleep 10
+              RETRY_COUNT=$((RETRY_COUNT+1))
+            fi
+          done
+          
+          echo "Waiting additional 20 seconds for MinIO to be fully initialized..."
+          sleep 20
+          echo "✓ Init container completed"
+      containers:
+      - name: bucket-creator
+        image: minio/mc:latest
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          set -e
+          echo "Starting bucket creation process..."
+          
+          # Set writable home directory and MC config path
+          export HOME=/tmp
+          export MC_CONFIG_DIR=/tmp/.mc
+          mkdir -p ${MC_CONFIG_DIR}
+          
+          # Debug: Verify environment variables
+          echo "Debug: MinIO credentials check..."
+          if [ -z "$MINIO_ROOT_USER" ] || [ -z "$MINIO_ROOT_PASSWORD" ]; then
+            echo "✗ MinIO credentials not found"
+            exit 1
+          fi
+          echo "✓ MinIO credentials are set"
+          
+          # Try to establish MinIO client connection
+          echo "Attempting to configure MinIO client..."
+          RETRY_COUNT=0
+          MAX_RETRIES=15
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            echo "Connection attempt $((RETRY_COUNT+1))/$MAX_RETRIES..."
+            
+            # Try with explicit options
+            if mc alias set myminio http://minio-service:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" --api s3v4 --path auto; then
+              echo "✓ Successfully configured MinIO client"
+              break
+            else
+              echo "Configuration failed, waiting 10 seconds..."
+              # Clean up any partial config
+              rm -rf ${MC_CONFIG_DIR}/config.json 2>/dev/null || true
+              sleep 10
+              RETRY_COUNT=$((RETRY_COUNT+1))
+            fi
+          done
+          
+          if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+            echo "✗ Failed to configure MinIO client after $MAX_RETRIES attempts"
+            echo "Debug info:"
+            echo "Service: minio-service:9000"
+            echo "User length: ${#MINIO_ROOT_USER}"
+            echo "Password length: ${#MINIO_ROOT_PASSWORD}"
+            nslookup minio-service || echo "DNS lookup failed"
+            exit 1
+          fi
+          
+          # Verify the connection works
+          echo "Testing MinIO connection with a simple command..."
+          if timeout 30 mc ls myminio/ > /dev/null 2>&1; then
+            echo "✓ MinIO connection verified"
+          else
+            echo "✗ MinIO connection test failed"
+            echo "Trying to get more diagnostic info..."
+            timeout 10 mc admin info myminio 2>&1 || echo "Admin info failed"
+            exit 1
+          fi
+          
+          # Create the models bucket
+          BUCKET_NAME="models"
+          echo "Checking if bucket '${BUCKET_NAME}' exists..."
+          
+          if mc ls myminio/${BUCKET_NAME} > /dev/null 2>&1; then
+            echo "✓ Bucket '${BUCKET_NAME}' already exists"
+          else
+            echo "Creating bucket: ${BUCKET_NAME}"
+            if mc mb myminio/${BUCKET_NAME}; then
+              echo "✓ Successfully created bucket: ${BUCKET_NAME}"
+              
+              # Verify bucket creation
+              sleep 2
+              if mc ls myminio/${BUCKET_NAME} > /dev/null 2>&1; then
+                echo "✓ Bucket creation verified"
+              else
+                echo "✗ Bucket creation verification failed"
+                exit 1
+              fi
+            else
+              echo "✗ Failed to create bucket: ${BUCKET_NAME}"
+              exit 1
+            fi
+          fi
+          
+          # List all buckets to confirm
+          echo "Current buckets in MinIO:"
+          mc ls myminio/
+          
+          echo "=== Bucket creation completed successfully ==="
+        env:
+        - name: HOME
+          value: "/tmp"
+        - name: MC_CONFIG_DIR
+          value: "/tmp/.mc"
+        envFrom:
+        - secretRef:
+            name: minio-secret
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+      restartPolicy: OnFailure
+  backoffLimit: 5

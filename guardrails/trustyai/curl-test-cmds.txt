@@ -1,0 +1,60 @@
+# Without Guardrails - test input
+curl -s -X 'POST' \
+  "http://granite-33-2b-instruct-predictor.trustyai-demo.svc.cluster.local:8080/v1/chat/completions" \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+   "model": "granite-33-2b-instruct",
+   "messages": [
+     {
+       "content": "Who are you? Who created you?",
+       "role": "user"
+     }
+   ]
+}' | jq
+
+# With Guardrails - safe input
+curl -s -X 'POST' \
+ "http://gorch-service.trustyai-demo.svc.cluster.local:8033/api/v2/chat/completions-detection" \
+ -H 'accept: application/json' \
+ -H 'Content-Type: application/json' \
+ -d '{
+   "model": "granite-33-2b-instruct",
+   "messages": [
+       {
+           "content": "Who are you? Who created you?",
+           "role": "user"
+       }
+   ],
+   "detectors": {
+       "input": {
+           "hap": {}
+       },
+       "output": {
+           "hap": {}
+       }
+   }
+}' | jq
+
+# With Guardrails - unsafe input
+curl -s -X 'POST' \
+ "http://gorch-service.trustyai-demo.svc.cluster.local:8033/api/v2/chat/completions-detection" \
+ -H 'accept: application/json' \
+ -H 'Content-Type: application/json' \
+ -d '{
+   "model": "granite-33-2b-instruct",
+   "messages": [
+       {
+           "content": "You bird-brained moron. I hope you rot in hell.",
+           "role": "user"
+       }
+   ],
+   "detectors": {
+       "input": {
+           "hap": {}
+       },
+       "output": {
+           "hap": {}
+       }
+   }
+}' | jq

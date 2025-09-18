@@ -1,0 +1,321 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hf-model-downloader-script
+  namespace: minio-dev
+data:
+  download-models.py: |
+    #!/usr/bin/env python3
+    import os
+    import sys
+    from huggingface_hub import snapshot_download
+    from minio import Minio
+    from minio.error import S3Error
+    import tempfile
+    from pathlib import Path
+    import time
+    import json
+    
+    def upload_directory_to_minio(minio_client, bucket_name, local_path, minio_prefix=""):
+        """Upload a directory recursively to MinIO"""
+        local_path = Path(local_path)
+        uploaded_files = 0
+        
+        for file_path in local_path.rglob("*"):
+            if file_path.is_file():
+                # Calculate relative path from local_path
+                relative_path = file_path.relative_to(local_path)
+                minio_path = f"{minio_prefix}/{relative_path}".lstrip("/")
+                
+                print(f"Uploading {file_path.name} to {bucket_name}/{minio_path}")
+                try:
+                    minio_client.fput_object(bucket_name, minio_path, str(file_path))
+                    uploaded_files += 1
+                    if uploaded_files % 10 == 0:
+                        print(f"✓ Uploaded {uploaded_files} files so far...")
+                except S3Error as e:
+                    print(f"✗ Failed to upload {minio_path}: {e}")
+                    return False
+        
+        print(f"✓ Successfully uploaded {uploaded_files} files")
+        return True
+    
+    def wait_for_minio(minio_client, max_retries=30):
+        """Wait for MinIO to be ready"""
+        for i in range(max_retries):
+            try:
+                # Try to list buckets to test connection
+                list(minio_client.list_buckets())
+                print("✓ MinIO is ready")
+                return True
+            except Exception as e:
+                print(f"MinIO not ready yet, waiting... (attempt {i+1}/{max_retries}): {e}")
+                time.sleep(10)
+        return False
+    
+    def model_exists_in_bucket(minio_client, bucket_name, model_folder):
+        """Check if a model folder exists in the bucket"""
+        try:
+            # List objects with the model folder prefix
+            objects = list(minio_client.list_objects(bucket_name, prefix=f"{model_folder}/", recursive=False))
+            
+            if objects:
+                print(f"✓ Model folder '{model_folder}' exists in bucket")
+                # Get count of files in the folder for verification
+                all_files = list(minio_client.list_objects(bucket_name, prefix=f"{model_folder}/", recursive=True))
+                file_count = len([obj for obj in all_files if not obj.object_name.endswith('/')])
+                print(f"  Found {file_count} files in existing model folder")
+                return True
+            else:
+                print(f"✓ Model folder '{model_folder}' does not exist in bucket")
+                return False
+        except S3Error as e:
+            print(f"✗ Error checking if model exists: {e}")
+            return False
+    
+    def get_models_list():
+        """Get list of models to download from environment variable or default list"""
+        # Try to get from environment variable first
+        models_env = os.getenv("HF_MODELS_LIST", "")
+        
+        if models_env:
+            # Parse comma-separated list from environment
+            models = [model.strip() for model in models_env.split(",") if model.strip()]
+            print(f"Using models from environment variable: {models}")
+            return models
+        else:
+            # Default list of models
+            default_models = [
+                "ibm-granite/granite-3.3-2b-instruct",
+                "ibm-granite/granite-guardian-hap-125m"
+            ]
+            print(f"Using default models list: {default_models}")
+            return default_models
+    
+    def main():
+        # MinIO configuration
+        minio_endpoint = "minio-service:9000"
+        minio_access_key = os.getenv("MINIO_ROOT_USER")
+        minio_secret_key = os.getenv("MINIO_ROOT_PASSWORD")
+        bucket_name = "models"
+        
+        # Get models list
+        models_to_download = get_models_list()
+        
+        if not models_to_download:
+            print("✗ No models specified for download")
+            sys.exit(1)
+        
+        if not minio_access_key or not minio_secret_key:
+            print("✗ MinIO credentials not found")
+            sys.exit(1)
+        
+        print(f"=== Starting download of {len(models_to_download)} models ===")
+        for i, model in enumerate(models_to_download, 1):
+            print(f"{i}. {model}")
+        print("=" * 60)
+        
+        # Initialize MinIO client
+        minio_client = Minio(
+            minio_endpoint,
+            access_key=minio_access_key,
+            secret_key=minio_secret_key,
+            secure=False
+        )
+        
+        # Wait for MinIO to be ready
+        if not wait_for_minio(minio_client):
+            print("✗ MinIO is not ready after waiting")
+            sys.exit(1)
+        
+        # Ensure bucket exists
+        try:
+            if not minio_client.bucket_exists(bucket_name):
+                print(f"Bucket {bucket_name} doesn't exist, waiting for bucket creation job...")
+                time.sleep(30)  # Give bucket creation job time to complete
+                if not minio_client.bucket_exists(bucket_name):
+                    print(f"Creating bucket: {bucket_name}")
+                    minio_client.make_bucket(bucket_name)
+        except S3Error as e:
+            print(f"✗ Error with bucket operations: {e}")
+            sys.exit(1)
+        
+        # Process each model
+        successful_downloads = 0
+        skipped_models = 0
+        failed_models = 0
+        
+        for model_id in models_to_download:
+            model_id = model_id.strip()
+            if not model_id:
+                continue
+                
+            print(f"\n{'='*60}")
+            print(f"Processing model: {model_id}")
+            print(f"{'='*60}")
+            
+            # Create safe folder name
+            model_folder = model_id.replace("/", "_")
+            
+            # Check if model already exists in bucket
+            if model_exists_in_bucket(minio_client, bucket_name, model_folder):
+                print(f"⚠ Model '{model_id}' already exists in bucket, skipping download")
+                skipped_models += 1
+                continue
+            
+            # Download model from Hugging Face
+            with tempfile.TemporaryDirectory() as temp_dir:
+                try:
+                    print(f"Downloading {model_id} from Hugging Face...")
+                    print("This may take a while for large models...")
+                    
+                    # Optional: Add HF token support for private models
+                    hf_token = os.getenv("HF_TOKEN", None)
+                    
+                    local_model_path = snapshot_download(
+                        repo_id=model_id,
+                        cache_dir=temp_dir,
+                        resume_download=True,
+                        local_files_only=False,
+                        token=hf_token
+                    )
+                    
+                    print(f"✓ Successfully downloaded {model_id}")
+                    
+                    # Upload to MinIO
+                    print(f"Uploading {model_id} to MinIO bucket {bucket_name}")
+                    
+                    success = upload_directory_to_minio(
+                        minio_client, 
+                        bucket_name, 
+                        local_model_path, 
+                        f"{model_folder}"
+                    )
+                    
+                    if success:
+                        print(f"✓ Successfully uploaded {model_id} to MinIO")
+                        
+                        # List uploaded objects for verification
+                        objects = list(minio_client.list_objects(bucket_name, prefix=f"{model_folder}/", recursive=True))
+                        file_count = len([obj for obj in objects if not obj.object_name.endswith('/')])
+                        print(f"✓ Uploaded {file_count} files to bucket")
+                        successful_downloads += 1
+                    else:
+                        print(f"✗ Failed to upload {model_id}")
+                        failed_models += 1
+                        
+                except Exception as e:
+                    print(f"✗ Error processing {model_id}: {str(e)}")
+                    failed_models += 1
+                    continue
+        
+        # Summary
+        print(f"\n{'='*60}")
+        print("DOWNLOAD SUMMARY")
+        print(f"{'='*60}")
+        print(f"Total models requested: {len(models_to_download)}")
+        print(f"Successfully downloaded: {successful_downloads}")
+        print(f"Skipped (already exists): {skipped_models}")
+        print(f"Failed downloads: {failed_models}")
+        print(f"{'='*60}")
+        
+        if failed_models > 0:
+            print(f"⚠ {failed_models} models failed to download")
+            sys.exit(1)
+        else:
+            print("✓ All requested models processed successfully")
+    
+    if __name__ == "__main__":
+        main()
+  
+  requirements.txt: |
+    huggingface_hub>=0.19.0
+    minio>=7.2.0
+    requests>=2.31.0
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hf-models-config
+  namespace: minio-dev
+data:
+  # Comma-separated list of models to download
+  # You can modify this list to add/remove models
+  models-list: |
+    ibm-granite/granite-3.3-2b-instruct,
+    ibm-granite/granite-guardian-hap-125m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hf-model-downloader
+  namespace: minio-dev
+  labels:
+    app: hf-model-downloader
+spec:
+  template:
+    metadata:
+      labels:
+        app: hf-model-downloader
+    spec:
+      containers:
+      - name: model-downloader
+        image: python:3.11-slim
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - |
+          set -e
+          echo "=== Starting Hugging Face Multi-Model Download Job ==="
+          
+          # Create a directory for packages inside the writable /tmp folder
+          PACKAGES_DIR=/tmp/packages
+          mkdir -p $PACKAGES_DIR
+          
+          echo "Installing dependencies to $PACKAGES_DIR..."
+          pip install --no-cache-dir --target=$PACKAGES_DIR -r /scripts/requirements.txt
+          
+          echo "Starting multi-model download and upload..."
+          # Add the packages directory to Python's path and run the script
+          PYTHONPATH=$PACKAGES_DIR python /scripts/download-models.py
+          
+          echo "=== Multi-model download job completed successfully ==="
+        env:
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: MINIO_ROOT_USER
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: MINIO_ROOT_PASSWORD
+        - name: HF_HOME
+          value: /tmp/huggingface_cache
+        # Models list from ConfigMap
+        - name: HF_MODELS_LIST
+          valueFrom:
+            configMapKeyRef:
+              name: hf-models-config
+              key: models-list
+        # Optional: Add HF token for private models
+        - name: HF_TOKEN
+          value: "hf_<ADD_YOUR_TOKEN_HERE>"
+        volumeMounts:
+        - name: downloader-script
+          mountPath: /scripts
+        resources:
+          requests:
+            cpu: "1"
+            memory: "4Gi"
+          limits:
+            cpu: "2"
+            memory: "8Gi"
+      volumes:
+      - name: downloader-script
+        configMap:
+          name: hf-model-downloader-script
+      restartPolicy: OnFailure
+  backoffLimit: 3

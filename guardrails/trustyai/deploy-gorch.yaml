@@ -1,0 +1,28 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+ name: fms-orchestr8-config-nlp
+data:
+  config.yaml: |
+    chat_generation: 
+      service:
+        hostname: granite-33-2b-instruct-predictor.trustyai-demo.svc.cluster.local
+        port: 8080
+    detectors:
+      hap: 
+        type: text_contents
+        service:
+          hostname: guardrails-detector-ibm-hap-predictor.trustyai-demo.svc.cluster.local
+          port: 8000
+        chunker_id: whole_doc_chunker
+        default_threshold: 0.5
+---
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: GuardrailsOrchestrator
+metadata:
+  name: gorch
+spec:
+  orchestratorConfig: "fms-orchestr8-config-nlp"
+  replicas: 1
+---
