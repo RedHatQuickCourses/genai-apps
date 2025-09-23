@@ -16,7 +16,7 @@ data:
         output: true
         detector_params:
           regex:    
-            - \b(?i:orange|apple|cranberry|pineapple|grape)\b
+            - \b(?i:vmware|broadcom|docker|oracle|suse)\b
       - name: hap
         input: true
         output: true
