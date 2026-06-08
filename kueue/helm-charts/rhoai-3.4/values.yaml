@@ -30,19 +30,3 @@ rhoai:
   enabled: true
   channel: stable-3.4
   namespace: redhat-ods-operator
-  dsc:
-    name: default-dsc
-    components:
-      codeflare: Removed
-      dashboard: Managed
-      datasciencepipelines: Managed
-      feastoperator: Managed
-      kserve: Managed
-      kueue: Unmanaged
-      llamastackoperator: Managed
-      modelmeshserving: Removed
-      modelregistry: Managed
-      ray: Managed
-      trainingoperator: Managed
-      trustyai: Managed
-      workbenches: Managed

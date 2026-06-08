@@ -1,4 +1,4 @@
-RHOAI 3.4 installation complete.
+RHOAI 3.4 operator subscriptions created.
 
 Operators installed:
 {{- if .Values.nfd.enabled }}
@@ -17,23 +17,22 @@ Operators installed:
   - Red Hat OpenShift AI (RHOAI) — {{ .Values.rhoai.namespace }}
 {{- end }}
 
-DataScienceCluster CR "{{ .Values.rhoai.dsc.name }}" created with:
-  Managed:  dashboard, datasciencepipelines, feastoperator, kserve,
-            llamastackoperator, modelregistry, ray, trainingoperator,
-            trustyai, workbenches
-  Unmanaged: kueue (managed by standalone operator)
-  Removed:  codeflare (deprecated), modelmeshserving (deprecated)
+Next steps:
 
-Kueue is NOT installed by this chart — use the separate "kueue" Helm chart.
-
-1. Wait for operators to reach "Succeeded":
+1. Wait for all operators to reach "Succeeded":
 
    watch "oc get csv -A | grep -E 'nfd|serverless|authorino|pipeline|rhods'"
 
-2. Verify the DataScienceCluster:
+2. Apply the DataScienceCluster CR:
 
-   oc get datasciencecluster {{ .Values.rhoai.dsc.name }}
+   oc apply -f helm-charts/rhoai-3.4/dsc.yaml
 
-3. Verify the dashboard route:
+3. Verify the DataScienceCluster:
+
+   oc get datasciencecluster default-dsc
+
+4. Verify the dashboard route:
 
    oc get route -n redhat-ods-applications
+
+Kueue is NOT installed by this chart — use the separate "kueue" Helm chart.
