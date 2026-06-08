@@ -1,0 +1,12 @@
+{{- if .Values.nfd.enabled }}
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-nfd
+  namespace: {{ .Values.nfd.namespace }}
+  labels:
+    {{- include "rhoai.labels" . | nindent 4 }}
+spec:
+  targetNamespaces:
+    - {{ .Values.nfd.namespace }}
+{{- end }}

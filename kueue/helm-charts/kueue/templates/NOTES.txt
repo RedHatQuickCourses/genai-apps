@@ -1,0 +1,16 @@
+Kueue operator installation started.
+
+1. Wait for the operator to reach "Succeeded":
+
+   watch "oc get csv -n {{ .Values.kueue.namespace }} | grep kueue"
+
+2. Verify the Kueue controller is running:
+
+   oc get pods -n {{ .Values.kueue.namespace }}
+
+3. Now configure Kueue resources manually (not managed by this chart):
+
+   - ResourceFlavors      (cluster-scoped)
+   - ClusterQueues         (cluster-scoped)
+   - LocalQueues           (namespace-scoped)
+   - WorkloadPriorityClasses (cluster-scoped)

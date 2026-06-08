@@ -1,0 +1,62 @@
+# Cohort ClusterQueues WITH reclaimWithinCohort
+#
+# This file is identical to 9-cohort-cluster-queues.yaml except it adds
+# reclaimWithinCohort: Any to the a100-cluster-queue. This enables the
+# training pool to reclaim GPUs that were lent to inference via borrowing.
+#
+# Used in Part 6 (Steps 27d-27f) to demonstrate reclaim preemption.
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ClusterQueue
+metadata:
+  name: a100-cluster-queue
+spec:
+  cohortName: gpu-cohort
+  namespaceSelector: {}
+  preemption:
+    withinClusterQueue: LowerPriority
+    reclaimWithinCohort: Any
+  resourceGroups:
+  - coveredResources: ["cpu", "memory", "nvidia.com/gpu"]
+    flavors:
+    - name: a100-gpu
+      resources:
+      - name: cpu
+        nominalQuota: 16
+      - name: memory
+        nominalQuota: 64Gi
+      - name: nvidia.com/gpu
+        nominalQuota: 4
+        lendingLimit: 1
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ClusterQueue
+metadata:
+  name: t4-cluster-queue
+spec:
+  cohortName: gpu-cohort
+  namespaceSelector: {}
+  preemption:
+    withinClusterQueue: LowerPriority
+  resourceGroups:
+  - coveredResources: ["cpu", "memory", "nvidia.com/gpu"]
+    flavors:
+    - name: t4-gpu
+      resources:
+      - name: cpu
+        nominalQuota: 8
+      - name: memory
+        nominalQuota: 32Gi
+      - name: nvidia.com/gpu
+        nominalQuota: 2
+    - name: a100-gpu
+      resources:
+      - name: cpu
+        nominalQuota: 0
+        borrowingLimit: 4
+      - name: memory
+        nominalQuota: 0
+        borrowingLimit: 16Gi
+      - name: nvidia.com/gpu
+        nominalQuota: 0
+        borrowingLimit: 1

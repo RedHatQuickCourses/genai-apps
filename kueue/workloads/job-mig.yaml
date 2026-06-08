@@ -1,0 +1,158 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mig-job-3g-20gb
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: mig-training-queue
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "70-90"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: mig-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  MIG Job: mig-job-3g-20gb"
+          echo "  MIG Profile: 3g.20gb (3 compute slices, 20 GiB)"
+          echo "  Resource requested: nvidia.com/mig-3g.20gb: 1"
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          echo "Verifying MIG resource allocation:"
+          echo "  This pod was admitted by Kueue via mig-training-queue"
+          echo "  backed by mig-cluster-queue (a100-mig flavor)"
+          echo ""
+          END=$((SECONDS+300))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 5 minutes ==="
+        resources:
+          requests:
+            cpu: "2"
+            memory: "8Gi"
+            nvidia.com/mig-3g.20gb: "1"
+          limits:
+            nvidia.com/mig-3g.20gb: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mig-job-2g-10gb
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: mig-training-queue
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "50-70"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: mig-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  MIG Job: mig-job-2g-10gb"
+          echo "  MIG Profile: 2g.10gb (2 compute slices, 10 GiB)"
+          echo "  Resource requested: nvidia.com/mig-2g.10gb: 1"
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          echo "Verifying MIG resource allocation:"
+          echo "  This pod was admitted by Kueue via mig-training-queue"
+          echo "  backed by mig-cluster-queue (a100-mig flavor)"
+          echo ""
+          END=$((SECONDS+300))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 5 minutes ==="
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/mig-2g.10gb: "1"
+          limits:
+            nvidia.com/mig-2g.10gb: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mig-job-1g-5gb
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: mig-training-queue
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "30-50"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: mig-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  MIG Job: mig-job-1g-5gb"
+          echo "  MIG Profile: 1g.5gb (1 compute slice, 5 GiB)"
+          echo "  Resource requested: nvidia.com/mig-1g.5gb: 1"
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          echo "Verifying MIG resource allocation:"
+          echo "  This pod was admitted by Kueue via mig-training-queue"
+          echo "  backed by mig-cluster-queue (a100-mig flavor)"
+          echo ""
+          END=$((SECONDS+300))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 5 minutes ==="
+        resources:
+          requests:
+            cpu: "1"
+            memory: "2Gi"
+            nvidia.com/mig-1g.5gb: "1"
+          limits:
+            nvidia.com/mig-1g.5gb: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName

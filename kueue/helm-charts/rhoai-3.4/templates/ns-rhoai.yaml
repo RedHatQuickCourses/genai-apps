@@ -1,0 +1,9 @@
+{{- if .Values.rhoai.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.rhoai.namespace }}
+  labels:
+    openshift.io/cluster-monitoring: "true"
+    {{- include "rhoai.labels" . | nindent 4 }}
+{{- end }}

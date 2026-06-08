@@ -1,0 +1,48 @@
+# Operator catalog defaults
+catalog:
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+
+# Node Feature Discovery
+nfd:
+  enabled: true
+  channel: stable
+  namespace: openshift-nfd
+
+# OpenShift Serverless (Knative)
+serverless:
+  enabled: true
+  channel: stable
+  namespace: openshift-serverless
+
+# Authorino Operator (all-namespace operator — installs into openshift-operators)
+authorino:
+  enabled: true
+  channel: stable
+
+# OpenShift Pipelines (all-namespace operator — installs into openshift-operators)
+pipelines:
+  enabled: true
+  channel: latest
+
+# Red Hat OpenShift AI
+rhoai:
+  enabled: true
+  channel: stable-3.4
+  namespace: redhat-ods-operator
+  dsc:
+    name: default-dsc
+    components:
+      codeflare: Removed
+      dashboard: Managed
+      datasciencepipelines: Managed
+      feastoperator: Managed
+      kserve: Managed
+      kueue: Unmanaged
+      llamastackoperator: Managed
+      modelmeshserving: Removed
+      modelregistry: Managed
+      ray: Managed
+      trainingoperator: Managed
+      trustyai: Managed
+      workbenches: Managed

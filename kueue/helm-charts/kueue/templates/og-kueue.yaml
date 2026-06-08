@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-kueue-operator
+  namespace: {{ .Values.kueue.namespace }}
+  labels:
+    {{- include "kueue.labels" . | nindent 4 }}
+spec: {}

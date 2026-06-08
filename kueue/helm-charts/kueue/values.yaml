@@ -1,0 +1,8 @@
+catalog:
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+
+kueue:
+  channel: stable-v1.3
+  startingCSV: kueue-operator.v1.3.1
+  namespace: openshift-kueue-operator

@@ -1,0 +1,204 @@
+# Admission Fair Sharing — Round 2 (Both Teams Submit)
+#
+# Four jobs total: 2 Research + 2 Production. The shared-gpu-queue has
+# only 2 GPU slots, so only 2 jobs can be admitted at a time.
+#
+# Because Research accumulated usage in round 1, Kueue should admit
+# Production's jobs first (they have lower historical usage).
+# Research's jobs stay pending until Production's complete.
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: research-round2-job-1
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: research-queue
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "70-90"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: training-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  Research Round 2 - Job 1"
+          echo "  Queue: research-queue -> shared-gpu-queue"
+          echo "  Should be PENDING (research has higher usage)"
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          END=$((SECONDS+60))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 60 seconds ==="
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: research-round2-job-2
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: research-queue
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "60-80"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: training-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  Research Round 2 - Job 2"
+          echo "  Queue: research-queue -> shared-gpu-queue"
+          echo "  Should be PENDING (research has higher usage)"
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          END=$((SECONDS+60))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 60 seconds ==="
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: production-round2-job-1
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: production-queue
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "50-70"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: training-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  Production Round 2 - Job 1"
+          echo "  Queue: production-queue -> shared-gpu-queue"
+          echo "  Should be ADMITTED (production has lower usage)"
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          END=$((SECONDS+60))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 60 seconds ==="
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: production-round2-job-2
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: production-queue
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "60-80"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: training-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  Production Round 2 - Job 2"
+          echo "  Queue: production-queue -> shared-gpu-queue"
+          echo "  Should be ADMITTED (production has lower usage)"
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          END=$((SECONDS+60))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 60 seconds ==="
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName

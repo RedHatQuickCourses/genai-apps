@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rbac-test-job
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: training-queue
+    kueue.x-k8s.io/priority-class: low-priority
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "30-50"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: training-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  RBAC Test Job: rbac-test-job"
+          echo "  Submitted by a batch user via training-queue"
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          echo "  This job proves that a user with kueue-batch-user-role"
+          echo "  can submit Jobs to a Kueue-managed queue."
+          echo ""
+          END=$((SECONDS+120))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 2 minutes ==="
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName

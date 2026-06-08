@@ -1,0 +1,95 @@
+# Fair Sharing Configuration (DRS-Based)
+#
+# Two teams share A100 GPUs in a cohort with fairSharing.weight values.
+# Kueue uses Dominant Resource Share (DRS) to decide preemption — the
+# queue with the highest DRS (most over-entitled usage) is preempted first.
+#
+# Team A (research): weight 1, nominalQuota 2 GPUs
+# Team B (production): weight 2, nominalQuota 1 GPU — favored in DRS
+#
+# Requires preemptionPolicy: FairSharing in the Kueue CR (Step 28).
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-b-jobs
+  labels:
+    kueue.openshift.io/managed: "true"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: default-sa-scc
+  namespace: team-b-jobs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:restricted-v3
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: team-b-jobs
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ClusterQueue
+metadata:
+  name: team-a-cluster-queue
+spec:
+  cohortName: fair-sharing-cohort
+  namespaceSelector: {}
+  preemption:
+    withinClusterQueue: LowerPriority
+    reclaimWithinCohort: Any
+  fairSharing:
+    weight: "1"
+  resourceGroups:
+  - coveredResources: ["cpu", "memory", "nvidia.com/gpu"]
+    flavors:
+    - name: a100-gpu
+      resources:
+      - name: cpu
+        nominalQuota: 8
+      - name: memory
+        nominalQuota: 32Gi
+      - name: nvidia.com/gpu
+        nominalQuota: 2
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ClusterQueue
+metadata:
+  name: team-b-cluster-queue
+spec:
+  cohortName: fair-sharing-cohort
+  namespaceSelector: {}
+  preemption:
+    withinClusterQueue: LowerPriority
+    reclaimWithinCohort: Any
+  fairSharing:
+    weight: "2"
+  resourceGroups:
+  - coveredResources: ["cpu", "memory", "nvidia.com/gpu"]
+    flavors:
+    - name: a100-gpu
+      resources:
+      - name: cpu
+        nominalQuota: 4
+      - name: memory
+        nominalQuota: 16Gi
+      - name: nvidia.com/gpu
+        nominalQuota: 1
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: LocalQueue
+metadata:
+  name: team-a-queue
+  namespace: training-jobs
+spec:
+  clusterQueue: team-a-cluster-queue
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: LocalQueue
+metadata:
+  name: team-b-queue
+  namespace: team-b-jobs
+spec:
+  clusterQueue: team-b-cluster-queue

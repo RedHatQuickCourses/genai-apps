@@ -1,0 +1,8 @@
+{{- if .Values.serverless.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.serverless.namespace }}
+  labels:
+    {{- include "rhoai.labels" . | nindent 4 }}
+{{- end }}

@@ -1,0 +1,15 @@
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: LocalQueue
+metadata:
+  name: training-queue
+  namespace: training-jobs
+spec:
+  clusterQueue: a100-cluster-queue
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: LocalQueue
+metadata:
+  name: inference-queue
+  namespace: inference-apps
+spec:
+  clusterQueue: t4-cluster-queue

@@ -1,0 +1,150 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: team-a-job-1
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: team-a-queue
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "60-80"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: training-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  Team A - Job 1 (Fair Sharing)"
+          echo "  Queue: team-a-queue -> team-a-cluster-queue"
+          echo "  fairSharing.weight: 1 | Quota: 2 GPUs"
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          END=$((SECONDS+300))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 5 minutes ==="
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: team-a-job-2
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: team-a-queue
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "70-90"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: training-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  Team A - Job 2 (Fair Sharing)"
+          echo "  Queue: team-a-queue -> team-a-cluster-queue"
+          echo "  fairSharing.weight: 1 | Quota: 2 GPUs"
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          END=$((SECONDS+300))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 5 minutes ==="
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: team-a-job-3
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: team-a-queue
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "50-70"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: training-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  Team A - Job 3 (BORROWS via Fair Sharing)"
+          echo "  Queue: team-a-queue -> team-a-cluster-queue"
+          echo "  fairSharing.weight: 1 | Quota: 2 GPUs"
+          echo "  This job borrows from Team B's idle capacity."
+          echo "  Team A's DRS (weightedShare) increases."
+          echo "  DRS-based preemption will evict this job"
+          echo "  when Team B submits work."
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          END=$((SECONDS+300))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 5 minutes ==="
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName

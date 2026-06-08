@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mig-preempt-high-3g
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: mig-training-queue
+    kueue.x-k8s.io/priority-class: high-priority
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "80-95"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: mig-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  MIG Job: mig-preempt-high-3g (HIGH priority)"
+          echo "  MIG Profile: 3g.20gb (3 compute slices, 20 GiB)"
+          echo "  Priority: high-priority (1000)"
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          echo "  This high-priority job PREEMPTED the low-priority"
+          echo "  job that was using the 3g.20gb MIG slot."
+          echo ""
+          END=$((SECONDS+300))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 5 minutes ==="
+        resources:
+          requests:
+            cpu: "2"
+            memory: "8Gi"
+            nvidia.com/mig-3g.20gb: "1"
+          limits:
+            nvidia.com/mig-3g.20gb: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName

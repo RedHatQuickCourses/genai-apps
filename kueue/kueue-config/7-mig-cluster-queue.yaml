@@ -1,0 +1,23 @@
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ClusterQueue
+metadata:
+  name: mig-cluster-queue
+spec:
+  namespaceSelector: {}
+  preemption:
+    withinClusterQueue: LowerPriority
+  resourceGroups:
+  - coveredResources: ["cpu", "memory", "nvidia.com/mig-3g.20gb", "nvidia.com/mig-2g.10gb", "nvidia.com/mig-1g.5gb"]
+    flavors:
+    - name: a100-mig
+      resources:
+      - name: cpu
+        nominalQuota: 8
+      - name: memory
+        nominalQuota: 32Gi
+      - name: nvidia.com/mig-3g.20gb
+        nominalQuota: 1
+      - name: nvidia.com/mig-2g.10gb
+        nominalQuota: 1
+      - name: nvidia.com/mig-1g.5gb
+        nominalQuota: 1

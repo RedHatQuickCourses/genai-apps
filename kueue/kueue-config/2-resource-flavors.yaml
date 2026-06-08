@@ -1,0 +1,23 @@
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ResourceFlavor
+metadata:
+  name: a100-gpu
+spec:
+  nodeLabels:
+    nvidia.com/gpu.product: NVIDIA-A100-SXM4-40GB
+  tolerations:
+  - key: "nvidia.com/gpu"
+    operator: "Exists"
+    effect: "NoSchedule"
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ResourceFlavor
+metadata:
+  name: t4-gpu
+spec:
+  nodeLabels:
+    nvidia.com/gpu.product: NVIDIA-T4
+  tolerations:
+  - key: "nvidia.com/gpu"
+    operator: "Exists"
+    effect: "NoSchedule"

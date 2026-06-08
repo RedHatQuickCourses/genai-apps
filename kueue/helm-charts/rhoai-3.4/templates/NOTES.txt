@@ -1,0 +1,39 @@
+RHOAI 3.4 installation complete.
+
+Operators installed:
+{{- if .Values.nfd.enabled }}
+  - Node Feature Discovery (NFD) — {{ .Values.nfd.namespace }}
+{{- end }}
+{{- if .Values.serverless.enabled }}
+  - OpenShift Serverless (Knative) — {{ .Values.serverless.namespace }}
+{{- end }}
+{{- if .Values.authorino.enabled }}
+  - Authorino — openshift-operators
+{{- end }}
+{{- if .Values.pipelines.enabled }}
+  - OpenShift Pipelines — openshift-operators
+{{- end }}
+{{- if .Values.rhoai.enabled }}
+  - Red Hat OpenShift AI (RHOAI) — {{ .Values.rhoai.namespace }}
+{{- end }}
+
+DataScienceCluster CR "{{ .Values.rhoai.dsc.name }}" created with:
+  Managed:  dashboard, datasciencepipelines, feastoperator, kserve,
+            llamastackoperator, modelregistry, ray, trainingoperator,
+            trustyai, workbenches
+  Unmanaged: kueue (managed by standalone operator)
+  Removed:  codeflare (deprecated), modelmeshserving (deprecated)
+
+Kueue is NOT installed by this chart — use the separate "kueue" Helm chart.
+
+1. Wait for operators to reach "Succeeded":
+
+   watch "oc get csv -A | grep -E 'nfd|serverless|authorino|pipeline|rhods'"
+
+2. Verify the DataScienceCluster:
+
+   oc get datasciencecluster {{ .Values.rhoai.dsc.name }}
+
+3. Verify the dashboard route:
+
+   oc get route -n redhat-ods-applications

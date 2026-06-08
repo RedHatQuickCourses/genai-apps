@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: training-jobs
+  labels:
+    kueue.openshift.io/managed: "true"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: inference-apps
+  labels:
+    kueue.openshift.io/managed: "true"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: default-scc-restricted-v3
+  namespace: training-jobs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:restricted-v3
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: training-jobs
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: default-scc-restricted-v3
+  namespace: inference-apps
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:restricted-v3
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: inference-apps

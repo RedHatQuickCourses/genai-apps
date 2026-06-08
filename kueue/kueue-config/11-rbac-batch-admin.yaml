@@ -1,0 +1,34 @@
+---
+# ClusterRoleBinding: grant kueue-admin the kueue-batch-admin-role
+# This gives full CRUD on ClusterQueues, LocalQueues, ResourceFlavors,
+# Workloads, and Jobs across the entire cluster.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kueue-batch-admin-binding
+subjects:
+- kind: User
+  name: kueue-admin
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: kueue-batch-admin-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# RoleBinding: grant kueue-admin the edit role in training-jobs
+# The batch-admin-role covers Kueue and Job resources but not pods, logs,
+# or events. The edit ClusterRole fills that gap so the admin can inspect
+# running pods and read logs in this namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kueue-admin-edit
+  namespace: training-jobs
+subjects:
+- kind: User
+  name: kueue-admin
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: edit
+  apiGroup: rbac.authorization.k8s.io

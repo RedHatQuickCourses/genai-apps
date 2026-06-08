@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inference-app-1
+  namespace: inference-apps
+  labels:
+    kueue.x-k8s.io/queue-name: inference-queue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inference-app-1
+  template:
+    metadata:
+      labels:
+        app: inference-app-1
+      annotations:
+        run.ai/simulated-gpu-utilization: "20-40"
+    spec:
+      containers:
+      - name: inference-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "=== Inference App: inference-app-1 ==="
+          echo "Node: $NODE_NAME"
+          echo ""
+          while true; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName

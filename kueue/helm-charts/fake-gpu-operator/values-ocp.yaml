@@ -1,0 +1,44 @@
+# Custom values for installing fake-gpu-operator on OpenShift (CPU-only cluster)
+#
+# Usage:
+#   helm install gpu-operator oci://ghcr.io/run-ai/fake-gpu-operator/fake-gpu-operator \
+#     --namespace gpu-operator --create-namespace \
+#     --version 0.0.80 \
+#     -f values-ocp.yaml
+#
+# Before installing, label your worker nodes:
+#   oc label node <worker-1> run.ai/simulated-gpu-node-pool=a100-pool
+#   oc label node <worker-2> run.ai/simulated-gpu-node-pool=t4-pool
+
+# Enable OpenShift-specific features (SCC RBAC, fake CSV, Prometheus integration)
+environment:
+  openshift: true
+
+# GPU topology — defines what fake GPUs each node pool gets
+# NOTE: We must explicitly set default to null to remove the upstream default pool
+topology:
+  nodePoolLabelKey: run.ai/simulated-gpu-node-pool
+  migStrategy: mixed
+  nodePools:
+    # Remove the upstream default pool (Tesla-K80)
+    default: null
+
+    # Worker 1: 4x A100 GPUs (MIG-capable, for training workloads)
+    a100-pool:
+      gpuProduct: NVIDIA-A100-SXM4-40GB
+      gpuCount: 4
+      gpuMemory: 40960    # 40 GiB in MiB
+
+    # Worker 2: 2x T4 GPUs (non-MIG, for inference workloads)
+    t4-pool:
+      gpuProduct: NVIDIA-T4
+      gpuCount: 2
+      gpuMemory: 16384    # 16 GiB in MiB
+
+# Disable KWOK components (not needed — we have real worker nodes)
+kwokGpuDevicePlugin:
+  enabled: false
+
+# Use the legacy device plugin (simpler than DRA for learning)
+draPlugin:
+  enabled: false

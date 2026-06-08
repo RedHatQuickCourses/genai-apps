@@ -1,0 +1,20 @@
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: WorkloadPriorityClass
+metadata:
+  name: low-priority
+value: 100
+description: "Low priority — batch training jobs that can wait or be preempted"
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: WorkloadPriorityClass
+metadata:
+  name: medium-priority
+value: 500
+description: "Medium priority — standard training and inference workloads"
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: WorkloadPriorityClass
+metadata:
+  name: high-priority
+value: 1000
+description: "High priority — critical inference services and urgent training jobs"

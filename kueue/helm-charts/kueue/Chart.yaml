@@ -1,0 +1,6 @@
+apiVersion: v2
+name: kueue-operator
+description: Installs the Red Hat build of Kueue operator on OpenShift via OLM
+type: application
+version: 1.0.0
+appVersion: "1.3.1"

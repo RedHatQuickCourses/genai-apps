@@ -1,0 +1,36 @@
+---
+# RoleBinding: grant kueue-user the kueue-batch-user-role in training-jobs
+# This lets the user submit Jobs, view LocalQueues, and view Workloads
+# within this namespace only. They CANNOT create or modify ClusterQueues,
+# ResourceFlavors, or LocalQueues.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kueue-batch-user-binding
+  namespace: training-jobs
+subjects:
+- kind: User
+  name: kueue-user
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: kueue-batch-user-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# RoleBinding: grant kueue-user the edit role in training-jobs
+# The batch-user-role only covers Kueue and Job resources. The edit
+# ClusterRole adds access to pods, logs, events, configmaps, and other
+# namespace-scoped resources so the user can monitor their workloads.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kueue-user-edit
+  namespace: training-jobs
+subjects:
+- kind: User
+  name: kueue-user
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: edit
+  apiGroup: rbac.authorization.k8s.io

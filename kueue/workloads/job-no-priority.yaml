@@ -1,0 +1,137 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: training-job-low
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: training-queue
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "40-60"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: training-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "=== Job: training-job-low (no priority) ==="
+          echo "Node: $NODE_NAME"
+          echo "GPUs requested: 1"
+          echo ""
+          END=$((SECONDS+300))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 5 minutes ==="
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: training-job-medium
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: training-queue
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "60-80"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: training-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "=== Job: training-job-medium (no priority) ==="
+          echo "Node: $NODE_NAME"
+          echo "GPUs requested: 1"
+          echo ""
+          END=$((SECONDS+300))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 5 minutes ==="
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: training-job-high
+  namespace: training-jobs
+  labels:
+    kueue.x-k8s.io/queue-name: training-queue
+spec:
+  suspend: true
+  template:
+    metadata:
+      annotations:
+        run.ai/simulated-gpu-utilization: "80-95"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: training-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "=== Job: training-job-high (no priority) ==="
+          echo "Node: $NODE_NAME"
+          echo "GPUs requested: 1"
+          echo ""
+          END=$((SECONDS+300))
+          while [ $SECONDS -lt $END ]; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+          echo "=== Job complete after 5 minutes ==="
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName

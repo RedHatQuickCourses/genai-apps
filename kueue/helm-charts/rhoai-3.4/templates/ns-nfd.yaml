@@ -1,0 +1,9 @@
+{{- if .Values.nfd.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.nfd.namespace }}
+  labels:
+    openshift.io/cluster-monitoring: "true"
+    {{- include "rhoai.labels" . | nindent 4 }}
+{{- end }}

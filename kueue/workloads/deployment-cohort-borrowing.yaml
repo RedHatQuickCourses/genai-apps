@@ -1,0 +1,156 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inference-fill-1
+  namespace: inference-apps
+  labels:
+    kueue.x-k8s.io/queue-name: inference-queue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inference-fill-1
+  template:
+    metadata:
+      labels:
+        app: inference-fill-1
+      annotations:
+        run.ai/simulated-gpu-utilization: "20-40"
+    spec:
+      containers:
+      - name: inference-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  Inference App: inference-fill-1"
+          echo "  Purpose: Fill T4 GPU slot 1 of 2"
+          echo "  Queue: inference-queue -> t4-cluster-queue"
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          while true; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inference-fill-2
+  namespace: inference-apps
+  labels:
+    kueue.x-k8s.io/queue-name: inference-queue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inference-fill-2
+  template:
+    metadata:
+      labels:
+        app: inference-fill-2
+      annotations:
+        run.ai/simulated-gpu-utilization: "30-50"
+    spec:
+      containers:
+      - name: inference-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  Inference App: inference-fill-2"
+          echo "  Purpose: Fill T4 GPU slot 2 of 2"
+          echo "  Queue: inference-queue -> t4-cluster-queue"
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          while true; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inference-borrow
+  namespace: inference-apps
+  labels:
+    kueue.x-k8s.io/queue-name: inference-queue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inference-borrow
+  template:
+    metadata:
+      labels:
+        app: inference-borrow
+      annotations:
+        run.ai/simulated-gpu-utilization: "40-60"
+    spec:
+      containers:
+      - name: inference-workload
+        image: registry.access.redhat.com/ubi9/ubi
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          echo "========================================="
+          echo "  Inference App: inference-borrow"
+          echo "  Purpose: BORROWS 1 GPU from A100 pool"
+          echo "  Queue: inference-queue -> t4-cluster-queue"
+          echo "  Expected: lands on A100 node (not T4)"
+          echo "  Node: $NODE_NAME"
+          echo "========================================="
+          echo ""
+          echo "If this pod shows NVIDIA-A100-SXM4-40GB in nvidia-smi"
+          echo "instead of NVIDIA-T4, cohort borrowing is working!"
+          echo ""
+          while true; do
+            echo "--- $(date) ---"
+            nvidia-smi
+            echo ""
+            sleep 5
+          done
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            nvidia.com/gpu: "1"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName

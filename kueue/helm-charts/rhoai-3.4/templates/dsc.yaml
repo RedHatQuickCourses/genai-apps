@@ -1,0 +1,36 @@
+{{- if .Values.rhoai.enabled }}
+apiVersion: datasciencecluster.opendatahub.io/v1
+kind: DataScienceCluster
+metadata:
+  name: {{ .Values.rhoai.dsc.name }}
+  labels:
+    {{- include "rhoai.labels" . | nindent 4 }}
+spec:
+  components:
+    codeflare:
+      managementState: {{ .Values.rhoai.dsc.components.codeflare }}
+    dashboard:
+      managementState: {{ .Values.rhoai.dsc.components.dashboard }}
+    datasciencepipelines:
+      managementState: {{ .Values.rhoai.dsc.components.datasciencepipelines }}
+    feastoperator:
+      managementState: {{ .Values.rhoai.dsc.components.feastoperator }}
+    kserve:
+      managementState: {{ .Values.rhoai.dsc.components.kserve }}
+    kueue:
+      managementState: {{ .Values.rhoai.dsc.components.kueue }}
+    llamastackoperator:
+      managementState: {{ .Values.rhoai.dsc.components.llamastackoperator }}
+    modelmeshserving:
+      managementState: {{ .Values.rhoai.dsc.components.modelmeshserving }}
+    modelregistry:
+      managementState: {{ .Values.rhoai.dsc.components.modelregistry }}
+    ray:
+      managementState: {{ .Values.rhoai.dsc.components.ray }}
+    trainingoperator:
+      managementState: {{ .Values.rhoai.dsc.components.trainingoperator }}
+    trustyai:
+      managementState: {{ .Values.rhoai.dsc.components.trustyai }}
+    workbenches:
+      managementState: {{ .Values.rhoai.dsc.components.workbenches }}
+{{- end }}

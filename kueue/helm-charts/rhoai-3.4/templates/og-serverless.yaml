@@ -1,0 +1,10 @@
+{{- if .Values.serverless.enabled }}
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-serverless
+  namespace: {{ .Values.serverless.namespace }}
+  labels:
+    {{- include "rhoai.labels" . | nindent 4 }}
+spec: {}
+{{- end }}

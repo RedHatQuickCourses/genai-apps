@@ -1,0 +1,46 @@
+# Admission Fair Sharing Configuration
+#
+# A single ClusterQueue shared by two LocalQueues (Research and Production).
+# admissionScope: UsageBasedAdmissionFairSharing enables Kueue to track
+# historical resource usage per LocalQueue and admit jobs from the queue
+# with the lowest accumulated usage first.
+#
+# Used in Step 33 (Part 7) to demonstrate admission ordering within a
+# single ClusterQueue — contrast with DRS fair sharing (Steps 28-32),
+# which operates between ClusterQueues in a cohort.
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ClusterQueue
+metadata:
+  name: shared-gpu-queue
+spec:
+  namespaceSelector: {}
+  admissionScope:
+    admissionMode: UsageBasedAdmissionFairSharing
+  resourceGroups:
+  - coveredResources: ["cpu", "memory", "nvidia.com/gpu"]
+    flavors:
+    - name: a100-gpu
+      resources:
+      - name: cpu
+        nominalQuota: 8
+      - name: memory
+        nominalQuota: 32Gi
+      - name: nvidia.com/gpu
+        nominalQuota: 2
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: LocalQueue
+metadata:
+  name: research-queue
+  namespace: training-jobs
+spec:
+  clusterQueue: shared-gpu-queue
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: LocalQueue
+metadata:
+  name: production-queue
+  namespace: training-jobs
+spec:
+  clusterQueue: shared-gpu-queue

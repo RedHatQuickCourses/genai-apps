@@ -1,0 +1,14 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: kueue-operator
+  namespace: {{ .Values.kueue.namespace }}
+  labels:
+    {{- include "kueue.labels" . | nindent 4 }}
+spec:
+  channel: {{ .Values.kueue.channel }}
+  installPlanApproval: Automatic
+  name: kueue-operator
+  source: {{ .Values.catalog.source }}
+  sourceNamespace: {{ .Values.catalog.sourceNamespace }}
+  startingCSV: {{ .Values.kueue.startingCSV }}

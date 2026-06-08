@@ -1,0 +1,46 @@
+# MIG Node Configuration for the Fake GPU Operator
+#
+# This file adds MIG labels and a partition annotation to an A100 worker node.
+# It partitions GPU 0 into three MIG instances (3g.20gb, 2g.10gb, 1g.5gb)
+# while leaving GPUs 1-3 as whole devices.
+#
+# IMPORTANT: Replace <worker-1-name> with your actual node name before applying.
+#   Run: oc get nodes -l run.ai/simulated-gpu-node-pool=a100-pool
+#   to find the correct node name.
+#
+# The mig-devices array fields:
+#   name     — MIG profile (e.g. 3g.20gb)
+#   position — GI slot start position on the GPU's compute fabric
+#   size     — number of compute slices consumed (the "X" in Xg.Ygb)
+#
+# Apply:  oc apply -f kueue-config/6a-mig-node-config.yaml
+# Undo:   oc label node <worker-1-name> node-role.kubernetes.io/runai-dynamic-mig- node-role.kubernetes.io/runai-mig-enabled-
+#         oc annotate node <worker-1-name> run.ai/mig.config-
+#
+# WARNING: NEVER run "oc delete -f" on this file! It would delete the entire
+#          Node object from the cluster. Use the Undo commands above instead.
+---
+apiVersion: v1
+kind: Node
+metadata:
+  name: worker-cluster-fn765-1    # <-- REPLACE with node name containing A100 GPU
+  labels:
+    node-role.kubernetes.io/runai-dynamic-mig: "true"
+    node-role.kubernetes.io/runai-mig-enabled: "true"
+  annotations:
+    run.ai/mig.config: |
+      version: v1
+      mig-configs:
+        selected:
+        - devices: ["0"]
+          mig-enabled: true
+          mig-devices:
+          - name: 3g.20gb
+            position: 0
+            size: 3
+          - name: 2g.10gb
+            position: 4
+            size: 2
+          - name: 1g.5gb
+            position: 6
+            size: 1
