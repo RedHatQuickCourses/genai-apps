@@ -25,31 +25,31 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: topology-worker-cluster-fn765-1    # <-- REPLACE with topology-<worker-1-name>
+  name: topology-worker-cluster-vnnbf-1    # <-- REPLACE with topology-<worker-1-name>
   namespace: gpu-operator
   labels:
-    node-name: worker-cluster-fn765-1      # <-- REPLACE with <worker-1-name>
+    node-name: worker-cluster-vnnbf-1     # <-- REPLACE with <worker-1-name>
     node-topology: "true"
 data:
   topology.yml: |
     gpuMemory: 40960
     gpuProduct: NVIDIA-A100-SXM4-40GB
     gpus:
-        - id: GPU-1663c532-094e-581c-b2ed-459617fa1171
+        - id: GPU-3cd5e88a-e888-5bfb-939a-e93761022345
           status:
             allocatedBy:
                 namespace: ""
                 pod: ""
                 container: ""
             podGpuUsageStatus: {}
-        - id: GPU-747a7a51-8a58-579b-8cde-c3cfaa85aad6
+        - id: GPU-68b11f81-2618-5b61-b187-4a25afe7205b
           status:
             allocatedBy:
                 namespace: ""
                 pod: ""
                 container: ""
             podGpuUsageStatus: {}
-        - id: GPU-c0edaef3-9bec-540d-940a-a05fa67fbf8a
+        - id: GPU-c9b00e75-53dc-5bec-a55b-842f82213d8a
           status:
             allocatedBy:
                 namespace: ""

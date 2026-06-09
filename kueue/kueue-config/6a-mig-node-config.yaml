@@ -23,7 +23,7 @@
 apiVersion: v1
 kind: Node
 metadata:
-  name: worker-cluster-fn765-1    # <-- REPLACE with node name containing A100 GPU
+  name: worker-cluster-vnnbf-1    # <-- REPLACE with node name containing A100 GPU
   labels:
     node-role.kubernetes.io/runai-dynamic-mig: "true"
     node-role.kubernetes.io/runai-mig-enabled: "true"
