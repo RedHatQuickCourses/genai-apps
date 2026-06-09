@@ -33,14 +33,14 @@ spec:
           echo "  Node: $NODE_NAME"
           echo "========================================="
           echo ""
-          END=$((SECONDS+60))
+          END=$((SECONDS+300))
           while [ $SECONDS -lt $END ]; do
             echo "--- $(date) ---"
             nvidia-smi
             echo ""
             sleep 5
           done
-          echo "=== Job complete after 60 seconds ==="
+          echo "=== Job complete after 5 minutes ==="
         resources:
           requests:
             cpu: "2"
@@ -82,14 +82,14 @@ spec:
           echo "  Node: $NODE_NAME"
           echo "========================================="
           echo ""
-          END=$((SECONDS+60))
+          END=$((SECONDS+300))
           while [ $SECONDS -lt $END ]; do
             echo "--- $(date) ---"
             nvidia-smi
             echo ""
             sleep 5
           done
-          echo "=== Job complete after 60 seconds ==="
+          echo "=== Job complete after 5 minutes ==="
         resources:
           requests:
             cpu: "2"
