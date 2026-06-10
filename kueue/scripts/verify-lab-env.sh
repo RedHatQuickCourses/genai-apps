@@ -156,15 +156,17 @@ for ns in training-jobs inference-apps team-b-jobs gpu-operator openshift-kueue-
   fi
 done
 
-# Check RHOAI
+# Check RHOAI — the operator subscription matters; lingering namespaces are harmless
 if oc get datasciencecluster default-dsc &>/dev/null; then
   check_fail "DataScienceCluster 'default-dsc' still exists (RHOAI installed)"
+  ((LEFTOVERS++))
+elif oc get subscription rhods-operator -n redhat-ods-operator &>/dev/null; then
+  check_fail "RHOAI Subscription still exists"
   ((LEFTOVERS++))
 fi
 for ns in redhat-ods-operator redhat-ods-applications redhat-ods-monitoring; do
   if oc get ns "$ns" &>/dev/null; then
-    check_fail "RHOAI namespace '$ns' still exists"
-    ((LEFTOVERS++))
+    check_warn "RHOAI namespace '$ns' still exists (harmless — will be replaced during Part 3)"
   fi
 done
 
